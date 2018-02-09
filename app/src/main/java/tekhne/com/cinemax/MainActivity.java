@@ -1,7 +1,9 @@
 package tekhne.com.cinemax;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -14,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -31,7 +34,7 @@ import tekhne.com.cinemax.notification.NotificacionIntent;
 import tekhne.com.cinemax.services.CineService;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener{
 
     private CineDao cineDao;
     private CineService servicioCine;
@@ -67,13 +70,17 @@ public class MainActivity extends AppCompatActivity
         listViewCines = (ListView) findViewById(R.id.listview_cine);
 
 
-        DaoSession daoSession = ((App) getApplication()).getDaoSession();
-        cineDao = daoSession.getCineDao();
-       // addCine();
 
+        setupSesionCine();
         Intent i = new Intent(this, NotificacionIntent.class);
         startService(i);
     }
+
+    private void setupSesionCine(){
+        DaoSession daoSession = ((App) getApplication()).getDaoSession();
+        cineDao = daoSession.getCineDao();
+    }
+
 
     private void addCine() {
 
@@ -125,17 +132,41 @@ public class MainActivity extends AppCompatActivity
       //  peliculas.execute(new Cine());
 
         servicioCine = new CineService(this) {
+
+            ProgressDialog progress  = new ProgressDialog(context);
+
+
+
             @Override
             public void onSucessCine(JSONObject cine) {
                 Log.d("respuesta",cine.toString());
-
-
                 Cine cinema = new Cine(cine);
+
 
             }
 
             @Override
             public void onSucessArrayCine(JSONArray listacines) {
+
+                progress.setMessage("Actualizando, tomese un cafe..");
+                progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                progress.setIndeterminate(true);
+                progress.setProgress(0);
+
+
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        progress.show();
+                       // startActivity(new Intent(getBaseContext(), MainActivity.class));
+                    }
+                }, 10000);
+
+
+
+
                 Log.d("respuesta-array",listacines.toString());
                 try {
                     JSONObject object = listacines.getJSONObject(0);
@@ -170,10 +201,18 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onFinish() {
                 super.onFinish();
+
                 listaCines = cineDao.loadAll();
+                progress.dismiss();
+
                 adaptador = new CineAdaptador(getBaseContext(), listaCines);
                 listViewCines.setAdapter(adaptador);
-
+               listViewCines.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                   @Override
+                   public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                       startActivity(new Intent(context, PeliculasActivity.class));
+                   }
+               });
                 //Toast.makeText(getBaseContext(), "Finalizo Correctamente", Toast.LENGTH_LONG).show();
             }
         };
@@ -205,4 +244,7 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+
+
 }

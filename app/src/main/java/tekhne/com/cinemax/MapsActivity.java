@@ -29,6 +29,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
     private GoogleMap mMap;
     private LocationManager locationManager;
+    private double latitud;
+    private double longitud;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +41,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        latitud = Double.valueOf(getIntent().getExtras().getString("latitud"));
+        longitud = Double.valueOf(getIntent().getExtras().getString("longitud"));
 
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    1000, 1, this);
-        }
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//
+//            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+//                    1000, 1, this);
+//        }
 
     }
 
@@ -52,10 +57,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        LatLng TutorialsPoint = new LatLng(21, 57);
+        LatLng ubicacion = new LatLng(latitud, longitud);
         mMap.addMarker(new
-                MarkerOptions().position(TutorialsPoint).title("cine center"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(TutorialsPoint));
+                MarkerOptions().position(ubicacion).title("cine center"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(ubicacion));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(ubicacion,12.0f));
     }
 
 

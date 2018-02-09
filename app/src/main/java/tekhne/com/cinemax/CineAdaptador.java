@@ -1,11 +1,14 @@
 package tekhne.com.cinemax;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -55,13 +58,26 @@ public class CineAdaptador extends BaseAdapter{
         TextView txt_name = (TextView)row.findViewById(R.id.txt_name);
         TextView txt_about = (TextView)row.findViewById(R.id.txt_about);
         TextView txt_horario = (TextView)row.findViewById(R.id.txt_horario);
-
+       ImageView image =  (ImageView)row.findViewById(R.id.img_cine);
+        ImageView ubicacion =  (ImageView)row.findViewById(R.id.img_ubicacion);
 
         Cine cine = cineList.get(position);
 
         txt_name.setText(cine.getNombre());
         txt_about.setText(cine.getDireccion());
         txt_horario.setText("6:00-12:00 LU-DO");
+        image.setImageDrawable(context.getResources().getDrawable(R.mipmap.cinecenter));
+        ubicacion.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_place_red_400_24dp));
+
+        ubicacion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent  intent =  new Intent(context, MapsActivity.class);
+                 intent.putExtra("latitud", "-17.7986884");
+                 intent.putExtra("longitud", "-63.1789864");
+                 context.startActivity(intent);
+            }
+        });
         return row;
     }
 }
