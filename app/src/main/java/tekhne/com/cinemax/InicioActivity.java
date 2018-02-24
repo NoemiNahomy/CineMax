@@ -27,8 +27,9 @@ public class InicioActivity extends AppCompatActivity {
             public void run() {
 
                 startActivity(new Intent(getBaseContext(), MainActivity.class));
+                finish();
             }
-        }, 3000);
+        }, 1000);
 
     }
 

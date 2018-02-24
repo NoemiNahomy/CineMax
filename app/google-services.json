@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "247263164463",
+    "firebase_url": "https://cinemax-1517074182547.firebaseio.com",
+    "project_id": "cinemax-1517074182547",
+    "storage_bucket": "cinemax-1517074182547.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247263164463:android:5d6275c0f8f3ddb7",
+        "android_client_info": {
+          "package_name": "tekhne.com.cinemax"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "247263164463-90pcatkuasln6iak5hvvb4s7npktak0e.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "247263164463-a518q5cgrs1fldqglnbkia21b9gvj9aq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB88IZklltl3edpZWlnorzYYAorbcHHfLE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

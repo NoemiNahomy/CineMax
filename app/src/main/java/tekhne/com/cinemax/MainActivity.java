@@ -1,17 +1,21 @@
 package tekhne.com.cinemax;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,6 +23,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,7 +40,8 @@ import cz.msebera.android.httpclient.Header;
 import tekhne.com.cinemax.db.Cine;
 import tekhne.com.cinemax.db.CineDao;
 import tekhne.com.cinemax.db.DaoSession;
-import tekhne.com.cinemax.notification.NotificacionIntent;
+import tekhne.com.cinemax.notification.Config;
+import tekhne.com.cinemax.notification.NotificationUtils;
 import tekhne.com.cinemax.services.CineService;
 
 public class MainActivity extends AppCompatActivity
@@ -41,6 +52,10 @@ public class MainActivity extends AppCompatActivity
     private ListView listViewCines;
     private CineAdaptador adaptador;
     private List<Cine> listaCines;
+    private AdView mAdView;
+
+
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,9 +87,60 @@ public class MainActivity extends AppCompatActivity
 
 
         setupSesionCine();
-        Intent i = new Intent(this, NotificacionIntent.class);
-        startService(i);
+
+
+
+        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                // checking for type intent filter
+                if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
+                    // gcm successfully registered
+                    // now subscribe to `global` topic to receive app wide notifications
+                    FirebaseMessaging.getInstance().subscribeToTopic(Config.TOPIC_GLOBAL);
+
+                    displayFirebaseRegId();
+
+                } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
+                    // new push notification is received
+
+                    String message = intent.getStringExtra("message");
+
+                    Toast.makeText(getApplicationContext(), "Push notification: " + message, Toast.LENGTH_LONG).show();
+
+                  ///  txtMessage.setText(message);
+                    Toast.makeText(getApplicationContext(), message.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+
+
+
+        MobileAds.initialize(this, "ca-app-pub-8002948765991814~9277717666");
+
+        AdView adView = new AdView(this);
+        adView.setAdSize(AdSize.BANNER);
+        adView.setAdUnitId("ca-app-pub-8002948765991814/3642247604");
+
+
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
     }
+
+    private void displayFirebaseRegId() {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences(Config.SHARED_PREF, 0);
+        String regId = pref.getString("regId", null);
+
+        Log.e("cinemax", "Firebase reg id: " + regId);
+
+
+    }
+
+
+
 
     private void setupSesionCine(){
         DaoSession daoSession = ((App) getApplication()).getDaoSession();
@@ -128,6 +194,20 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        // register GCM registration complete receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(Config.REGISTRATION_COMPLETE));
+        // register new push message receiver
+        // by doing this, the activity will be notified each time a new message arrives
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(Config.PUSH_NOTIFICATION));
+        // clear the notification area when the app is opened
+        NotificationUtils.clearNotifications(getApplicationContext());
+
+
+
+
+
       //  GetPeliculas peliculas = new GetPeliculas();
       //  peliculas.execute(new Cine());
 
@@ -245,6 +325,10 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+        super.onPause();
+    }
 
 }
